@@ -8,41 +8,42 @@ import Loaders from "react-loading-icons";
 const Contributors = () => {
   const [angularOrg, setangularOrg] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  
   const fetchContributors = useCallback(async () => {
-    const response = await fetch(
-      `${process.env.REACT_APP_GITHUB_URL}/orgs/Angular`,
-      {
-        headers: {
-          Authorization: `token ${process.env.REACT_APP_GITHUB_TOKEN}`,
-        },
-      }
-    );
-    const data = await response.json();
-    setangularOrg([data]);
-    const nextResponse = await fetch(
-      `${process.env.REACT_APP_GITHUB_URL}/orgs/angular/repos?per_page=2`,
-      {
-        headers: {
-          Authorization: `token ${process.env.REACT_APP_GITHUB_TOKEN}`,
-        },
-      }
-    );
-    const newData = await nextResponse.json();
-
-    const contrubutor = newData.map(async (element) => {
-      const nextNextResponse = await fetch(element.contributors_url, {
-        headers: {
-          Authorization: `token ${process.env.REACT_APP_GITHUB_TOKEN}`,
-        },
-      });
-      return await nextNextResponse.json();
-    });
-
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_GITHUB_URL}/orgs/Angular`,
+        {
+          headers: {
+            Authorization: `token ${process.env.REACT_APP_GITHUB_TOKEN}`,
+          },
+        }
+        );
+        const data = await response.json();
+        setangularOrg([data]);
+        const nextResponse = await fetch(
+          `${process.env.REACT_APP_GITHUB_URL}/orgs/angular/repos?per_page=2`,
+          {
+          headers: {
+            Authorization: `token ${process.env.REACT_APP_GITHUB_TOKEN}`,
+          },
+        }
+        );
+        const newData = await nextResponse.json();
+        
+        const contrubutor = newData.map(async (element) => {
+          const nextNextResponse = await fetch(element.contributors_url, {
+            headers: {
+              Authorization: `token ${process.env.REACT_APP_GITHUB_TOKEN}`,
+            },
+          });
+          return await nextNextResponse.json();
+        });
+        
     const allRepoContributors = await Promise.all(contrubutor);
-
+    
     const ranks = {};
-
+    
     allRepoContributors.forEach((repo) => {
       repo.forEach((contributor) => {
         if (!ranks[contributor.login]) {
@@ -56,11 +57,11 @@ const Contributors = () => {
           };
         } else {
           ranks[contributor.login].contribution =
-            ranks[contributor.login].contribution + contributor.contributions;
+          ranks[contributor.login].contribution + contributor.contributions;
         }
       });
     });
-
+    
     const allUsersPromises = Object.values(ranks).map(async (user) => {
       const response = await fetch(user.userUrl, {
         headers: {
@@ -71,7 +72,7 @@ const Contributors = () => {
     });
 
     const allUsers = await Promise.all(allUsersPromises);
-
+    
     allUsers.forEach((user) => {
       ranks[user.login] = {
         ...ranks[user.login],
@@ -82,22 +83,28 @@ const Contributors = () => {
         repos_url: user.repos_url,
       };
     });
-
+    
     const sortedUsers = Object.values(ranks).sort((a, b) =>
-      a.contribution < b.contribution
-        ? 1
-        : b.contribution < a.contribution
-        ? -1
+    a.contribution < b.contribution
+    ? 1
+    : b.contribution < a.contribution
+    ? -1
         : 0
     );
 
     setangularOrg(sortedUsers);
-
-    console.log("iiii", sortedUsers);
-
+    
     setLoading(false);
-  }, [angularOrg]);
-
+    
+    
+    } catch (error) {
+      return {error}
+    
+  }
+}, [angularOrg]
+  
+  );
+  
   useEffect(() => {
     const getContributors = async () => {
       await fetchContributors();
