@@ -8,7 +8,7 @@ import Loaders from "react-loading-icons";
 const Contributors = () => {
   const [angularOrg, setangularOrg] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const fetchContributors = useCallback(async () => {
     try {
       const response = await fetch(
@@ -18,99 +18,102 @@ const Contributors = () => {
             Authorization: `token ${process.env.REACT_APP_GITHUB_TOKEN}`,
           },
         }
-        );
-        const data = await response.json();
-        setangularOrg([data]);
-        const nextResponse = await fetch(
-          `${process.env.REACT_APP_GITHUB_URL}/orgs/angular/repos?per_page=2`,
-          {
+      );
+      const data = await response.json();
+      setangularOrg([data]);
+      const nextResponse = await fetch(
+        `${process.env.REACT_APP_GITHUB_URL}/orgs/angular/repos?per_page=2`,
+        {
           headers: {
             Authorization: `token ${process.env.REACT_APP_GITHUB_TOKEN}`,
           },
         }
-        );
-        const newData = await nextResponse.json();
-        
-        const contrubutor = newData.map(async (element) => {
-          const nextNextResponse = await fetch(element.contributors_url, {
-            headers: {
-              Authorization: `token ${process.env.REACT_APP_GITHUB_TOKEN}`,
-            },
-          });
-          return await nextNextResponse.json();
+      );
+      const newData = await nextResponse.json();
+
+      const contrubutor = newData.map(async (element) => {
+        const nextNextResponse = await fetch(element.contributors_url, {
+          headers: {
+            Authorization: `token ${process.env.REACT_APP_GITHUB_TOKEN}`,
+          },
         });
-        
-    const allRepoContributors = await Promise.all(contrubutor);
-    
-    const ranks = {};
-    
-    allRepoContributors.forEach((repo) => {
-      repo.forEach((contributor) => {
-        if (!ranks[contributor.login]) {
-          ranks[contributor.login] = {
-            login: contributor.login,
-            contribution: contributor.contributions,
-            avatarUrl: contributor.avatar_url,
-            userUrl: contributor.url,
-            followers: contributor.followers_url,
-            gists: contributor.gists_url,
-          };
-        } else {
-          ranks[contributor.login].contribution =
-          ranks[contributor.login].contribution + contributor.contributions;
-        }
+        return await nextNextResponse.json();
       });
-    });
-    
-    const allUsersPromises = Object.values(ranks).map(async (user) => {
-      const response = await fetch(user.userUrl, {
-        headers: {
-          Authorization: `token ${process.env.REACT_APP_GITHUB_TOKEN}`,
-        },
+
+      const allRepoContributors = await Promise.all(contrubutor);
+
+      const ranks = {};
+
+      allRepoContributors.forEach((repo) => {
+        repo.forEach((contributor) => {
+          if (!ranks[contributor.login]) {
+            ranks[contributor.login] = {
+              login: contributor.login,
+              contribution: contributor.contributions,
+              avatarUrl: contributor.avatar_url,
+              userUrl: contributor.url,
+              followers: contributor.followers_url,
+              gists: contributor.gists_url,
+            };
+          } else {
+            ranks[contributor.login].contribution =
+              ranks[contributor.login].contribution + contributor.contributions;
+          }
+        });
       });
-      return await response.json();
-    });
 
-    const allUsers = await Promise.all(allUsersPromises);
-    
-    allUsers.forEach((user) => {
-      ranks[user.login] = {
-        ...ranks[user.login],
-        name: user.name,
-        followers: user.followers,
-        public_repos: user.public_repos,
-        public_gists: user.public_gists,
-        repos_url: user.repos_url,
-      };
-    });
-    
-    const sortedUsers = Object.values(ranks).sort((a, b) =>
-    a.contribution < b.contribution
-    ? 1
-    : b.contribution < a.contribution
-    ? -1
-        : 0
-    );
+      const allUsersPromises = Object.values(ranks).map(async (user) => {
+        const response = await fetch(user.userUrl, {
+          headers: {
+            Authorization: `token ${process.env.REACT_APP_GITHUB_TOKEN}`,
+          },
+        });
+        return await response.json();
+      });
 
-    setangularOrg(sortedUsers);
-    
-    setLoading(false);
-    
-    
+      const allUsers = await Promise.all(allUsersPromises);
+
+      allUsers.forEach((user) => {
+        ranks[user.login] = {
+          ...ranks[user.login],
+          name: user.name,
+          followers: user.followers,
+          public_repos: user.public_repos,
+          public_gists: user.public_gists,
+          repos_url: user.repos_url,
+        };
+      });
+
+      const sortedUsers = Object.values(ranks).sort((a, b) =>
+        a.contribution < b.contribution
+          ? 1
+          : b.contribution < a.contribution
+            ? -1
+            : 0
+      );
+
+      setangularOrg(sortedUsers);
+
+      setLoading(false);
+
+
     } catch (error) {
-      return {error}
-    
-  }
-}, [angularOrg]
-  
+      return { error }
+
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [angularOrg]
+
   );
-  
+
   useEffect(() => {
     const getContributors = async () => {
       await fetchContributors();
     };
 
     getContributors();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const sortByContributions = (e) => {
@@ -119,8 +122,8 @@ const Contributors = () => {
       a.contribution < b.contribution
         ? 1
         : b.contribution < a.contribution
-        ? -1
-        : 0
+          ? -1
+          : 0
     );
 
     setangularOrg(sortedContributions);
@@ -141,8 +144,8 @@ const Contributors = () => {
       a.public_repos < b.public_repos
         ? 1
         : b.public_repos < a.public_repos
-        ? -1
-        : 0
+          ? -1
+          : 0
     );
 
     setangularOrg(sortedPublicRepos);
@@ -154,13 +157,13 @@ const Contributors = () => {
       a.public_gists < b.public_gists
         ? 1
         : b.public_gists < a.public_gists
-        ? -1
-        : 0
+          ? -1
+          : 0
     );
 
     setangularOrg(sortedPublicGists);
   };
-
+  // { angularOrg.forEach(one => console.log(one.login)) }
   if (!loading) {
     return (
       <section id="contributors">
@@ -200,42 +203,48 @@ const Contributors = () => {
         </div>
 
         <div className="wrapper">
+
           {angularOrg.length > 0 &&
-            angularOrg.map((contributors, user) => (
-              <div className="container">
+            angularOrg.map((contributors) => (
+
+              <div className="container" key={contributors.login} >
+
                 <Link to="/userprofile">
                   <img
                     className="img-container"
                     src={contributors.avatarUrl}
-                    key={contributors.id}
                     alt="img"
                   ></img>
                 </Link>
 
                 <div className="paragraph">
-                  <h2 className="name" key={contributors.id}>
+                  <h2 className="name" >
                     {contributors.name}
                   </h2>
                   <p>
-                    <em key={contributors.id}>{contributors.login}</em>
+                    <em >{contributors.login}</em>
                   </p>
                   <div className="contributor">
-                    <p>contributions:{contributors.contribution}</p>
-                    <p>followers:{contributors.followers}</p>
-                    <p>public repos:{contributors.public_repos}</p>
-                    <p>public gists:{contributors.public_gists}</p>
+                    <p >contributions:{contributors.contribution}</p>
+                    <p >followers:{contributors.followers}</p>
+                    <p  >public repos:{contributors.public_repos}</p>
+                    <p >public gists:{contributors.public_gists}</p>
                   </div>
+
                   <Link
                     to={`/userprofile/${contributors.login}`}
                     state={{ contributors }}
                   >
+
                     <button className="btn">Profile</button>
                   </Link>
                 </div>
+
               </div>
+
             ))}
         </div>
-      </section>
+      </section >
     );
   } else {
     return <Loaders.Circles className="loader" />;
