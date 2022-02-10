@@ -101,7 +101,7 @@ const Contributors = () => {
       return { error }
 
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [angularOrg]
 
   );
@@ -163,7 +163,7 @@ const Contributors = () => {
 
     setangularOrg(sortedPublicGists);
   };
-  // { angularOrg.forEach(one => console.log(one.login)) }
+
   if (!loading) {
     return (
       <section id="contributors">

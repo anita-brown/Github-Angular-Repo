@@ -5,7 +5,7 @@ import { useCallback } from "react";
 import { useLocation } from "react-router-dom";
 
 const UserProfile = () => {
-  const [loading, setLoading] = useState(true);
+  const [setLoading] = useState(true);
   const location = useLocation();
   const { contributors } = location.state;
   const [reposUrl, setRepo] = useState([]);
@@ -22,6 +22,7 @@ const UserProfile = () => {
     setRepo(data);
 
     setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contributors.repos_url]);
 
   useEffect(() => {
